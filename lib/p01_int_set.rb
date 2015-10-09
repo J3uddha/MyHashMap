@@ -36,13 +36,22 @@ class IntSet
     @store = Array.new(num_buckets) { Array.new }
   end
 
+  def mod(num)
+    num % 20
+  end
+
   def insert(num)
+    @store[mod(num)] << num
   end
 
   def remove(num)
+    bucket = @store[mod(num)]
+    i = bucket.index(num)
+    bucket[i] = nil
   end
 
   def include?(num)
+    @store[mod(num)].any? {|int| int == num }
   end
 
   private
@@ -64,13 +73,27 @@ class ResizingIntSet
     @count = 0
   end
 
+  def mod(num)
+    num % num_buckets
+  end
+
   def insert(num)
+    if num >= num_buckets
+      resize!
+    end
+    @store[mod(num)] << num
+    @count += 1
   end
 
   def remove(num)
+    bucket = @store[mod(num)]
+    i = bucket.index(num)
+    bucket[i] = nil
+    @count -= 1
   end
 
   def include?(num)
+    @store[mod(num)].any? {|int| int == num }
   end
 
   private
@@ -84,5 +107,15 @@ class ResizingIntSet
   end
 
   def resize!
+    old_store = @store
+    new_size = old_store.size * 2
+    @store = Array.new(new_size) { [] }
+    old_store.each do |bucket|
+      bucket.each do |el|
+        @store[mod(el)] << el
+      end
+    end
+
+    nil
   end
 end
